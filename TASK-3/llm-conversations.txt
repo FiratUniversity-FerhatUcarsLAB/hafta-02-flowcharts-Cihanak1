@@ -1,0 +1,164 @@
+ “Hastane randevu sistemi i¸cin algoritma: kimlik do˘grulama, poliklinik
+ se¸cimi, doktor listesi g¨or¨unt¨uleme, uygun saatleri g¨osterme, randevu
+ onaylama ve SMS g¨onderme. Pseudocode yaz.
+ChatGPT:
+
+Tabii! Aşağıda hastane randevu sistemi için adım adım, anlaşılır biçimde yazılmış pseudocode (yapay kod) yer alıyor.
+Algoritma; kimlik doğrulama, poliklinik seçimi, doktor görüntüleme, uygun saat seçimi, randevu onayı ve SMS gönderimini içerir.
+
+🏥 Hastane Randevu Sistemi Pseudocode
+BAŞLA
+
+// --- Kimlik Doğrulama Aşaması ---
+Ekrana "T.C. Kimlik Numaranızı Giriniz:" yaz
+TCKimlik ← oku
+Ekrana "Şifrenizi Giriniz:" yaz
+Sifre ← oku
+
+Eğer KimlikDogrula(TCKimlik, Sifre) = FALSE ise
+    Ekrana "Kimlik doğrulama başarısız! Tekrar deneyiniz." yaz
+    DUR
+Aksi halde
+    Ekrana "Kimlik doğrulama başarılı. Hoş geldiniz!" yaz
+Son
+
+// --- Poliklinik Seçimi ---
+Ekrana "Lütfen randevu almak istediğiniz polikliniği seçiniz:" yaz
+PoliklinikListesiGoster()
+Poliklinik ← oku
+
+// --- Doktor Listesi ---
+Ekrana Poliklinik & " polikliniğinde görevli doktorlar:" yaz
+DoktorListesiGoster(Poliklinik)
+Doktor ← oku
+
+// --- Uygun Saatleri Gösterme ---
+Ekrana Doktor & " için uygun randevu saatleri:" yaz
+SaatListesi ← UygunSaatleriGetir(Doktor)
+Eğer SaatListesi boş ise
+    Ekrana "Bu doktor için uygun randevu bulunmamaktadır." yaz
+    DUR
+Son
+Ekrana SaatListesi yaz
+Saat ← oku
+
+// --- Randevu Onaylama ---
+Ekrana "Seçtiğiniz Randevu: " & Poliklinik & " - " & Doktor & " - " & Saat yaz
+Ekrana "Onaylıyor musunuz? (E/H)" yaz
+Onay ← oku
+
+Eğer Onay = "E" ise
+    RandevuKaydet(TCKimlik, Doktor, Saat)
+    SmsGonder(TCKimlik, Doktor, Saat)
+    Ekrana "Randevunuz başarıyla oluşturuldu! Onay SMS’i gönderildi." yaz
+Aksi halde
+    Ekrana "Randevu işlemi iptal edildi." yaz
+Son
+
+BİTİR
+
+🧩 Kullanılan Yardımcı Fonksiyonlar
+Fonksiyon KimlikDogrula(TCKimlik, Sifre)
+    // Veritabanında kimlik ve şifre kontrolü yapılır
+    Eğer (TCKimlik ve Sifre sistemde kayıtlı ise)
+        Dön TRUE
+    Aksi halde
+        Dön FALSE
+Son
+
+Fonksiyon PoliklinikListesiGoster()
+    // Örnek: Dahiliye, Kardiyoloji, Göz, Ortopedi...
+Son
+
+Fonksiyon DoktorListesiGoster(Poliklinik)
+    // Seçilen polikliniğe göre doktorları listeler
+Son
+
+Fonksiyon UygunSaatleriGetir(Doktor)
+    // Doktorun uygun olduğu saatleri döndürür
+Son
+
+Fonksiyon SmsGonder(TCKimlik, Doktor, Saat)
+    // Kullanıcıya SMS ile randevu bilgisi gönderir
+Son
+
+
+İstersen bu pseudocode’u sana Graphviz DOT diyagramı (başla/bitir oval, karar elmas, giriş/çıkış paralelkenar vb.) olarak da dönüştürebilirim.
+Bunu ister misin?
+
+Şunu dedin:
+yes just do it
+ChatGPT:
+
+Harika 👍 İşte yukarıdaki hastane randevu sistemi algoritmasının Graphviz DOT biçiminde,
+şekiller (oval, paralelkenar, dikdörtgen, elmas) ve yönlendirilmiş oklarla hazırlanmış hali:
+
+digraph HastaneRandevuSistemi {
+    rankdir=TB;
+    node [fontname="Arial"];
+
+    // --- Başlangıç ve Bitiş ---
+    Start [shape=oval, label="BAŞLA"];
+    End [shape=oval, label="BİTİR"];
+
+    // --- Kimlik Doğrulama ---
+    InputTC [shape=parallelogram, label="T.C. Kimlik Numaranızı Giriniz"];
+    InputSifre [shape=parallelogram, label="Şifrenizi Giriniz"];
+    CheckKimlik [shape=diamond, label="Kimlik Doğrulama Başarılı mı?"];
+    FailAuth [shape=box, label="Ekrana 'Doğrulama başarısız!' yaz"];
+    SuccessAuth [shape=box, label="Ekrana 'Hoş geldiniz!' yaz"];
+
+    // --- Poliklinik Seçimi ---
+    SelectPoliklinik [shape=parallelogram, label="Poliklinik seçiniz"];
+    ShowDoctors [shape=box, label="Polikliniğe göre doktorları göster"];
+    SelectDoctor [shape=parallelogram, label="Doktor seçiniz"];
+
+    // --- Uygun Saat Seçimi ---
+    ShowTimes [shape=box, label="Uygun randevu saatlerini göster"];
+    CheckTimes [shape=diamond, label="Uygun saat var mı?"];
+    NoTime [shape=box, label="Ekrana 'Uygun randevu yok' yaz"];
+
+    SelectTime [shape=parallelogram, label="Randevu saati seçiniz"];
+    Confirm [shape=diamond, label="Onaylıyor musunuz? (E/H)"];
+
+    // --- Randevu Onayı ---
+    SaveAppointment [shape=box, label="Randevuyu kaydet"];
+    SendSMS [shape=box, label="Onay SMS'i gönder"];
+    ShowSuccess [shape=box, label="Ekrana 'Randevu oluşturuldu' yaz"];
+    Cancel [shape=box, label="Ekrana 'Randevu iptal edildi' yaz"];
+
+    // --- Bağlantılar ---
+    Start -> InputTC -> InputSifre -> CheckKimlik;
+    CheckKimlik -> FailAuth [label="Hayır"];
+    FailAuth -> End;
+    CheckKimlik -> SuccessAuth [label="Evet"];
+    SuccessAuth -> SelectPoliklinik -> ShowDoctors -> SelectDoctor -> ShowTimes -> CheckTimes;
+
+    CheckTimes -> NoTime [label="Hayır"];
+    NoTime -> End;
+    CheckTimes -> SelectTime [label="Evet"];
+
+    SelectTime -> Confirm;
+    Confirm -> SaveAppointment [label="E"];
+    SaveAppointment -> SendSMS -> ShowSuccess -> End;
+    Confirm -> Cancel [label="H"];
+    Cancel -> End;
+}
+
+
+Bu DOT kodunu istersen:
+
+Graphviz Online (örnek: dreampuf.github.io/GraphvizOnline
+)
+
+veya VS Code + Graphviz eklentisi ile
+doğrudan görsel akış diyagramına dönüştürebilirsin.
+
+İstersen ben bu diyagramı senin için görsel olarak (flowchart şeklinde) oluşturayım — ister misin onu da çizeyim?
+
+Şunu dedin:
+buna benzer bir açıklama yaz 5-6 satırlık olsun
+ DUR programı/oturumu sonlandırır. DEVAM ET ile döngünün başına dönülür (bir sonraki işlem için). BREAK ile iç döngüden çıkılır (örn. PIN doğrulandıktan sonra). % operatörü modül almak için kullanıldı; (withdrawAmount % 20) <> 0 ifadesi 20'nin katı olmadığını kontrol eder. Günlük limit dailyLimit - dailyWithdrawn ile hesaplanır; işlem başarılıysa dailyWithdrawn güncellenir. PIN hakkı tükenirse kart bloke edilir ve oturum sonlandırılır. atmCashAvailable değişkeni ATM'nin fiziksel nakit seviyesini temsil eder; gerçek ATM'lerde banknot kombinasyonu kontrolü de gerekir (ör. 20/50/100 TL vs). Burada sadece toplam miktar ve 20 TL katı kontrolü yapılmıştır. Geliştirme için ek özellikler: işlem fişi basma, parola gizleme (***), zaman damgası, çoklu para birimi, farklı işlem türleri (para yatırma, para transferi), banknot kombinasyonu kontrolü.
+ChatGPT:
+
+Bu algoritmada hastane randevu sistemi adım adım tasarlanmıştır. DUR ifadesi programın sonlandığı noktayı belirtir. Kullanıcı kimlik doğrulamasında başarısız olursa oturum sonlanır; başarılı olursa işlem akışı devam eder. Poliklinik ve doktor seçimleri, uygun saatlerin görüntülenmesiyle birlikte birbirini izleyen adımlar şeklindedir. Onaylama aşamasında kullanıcı “E” girerse randevu kaydedilir ve SMS gönderilir, aksi halde işlem iptal edilir. Yardımcı fonksiyonlar (örneğin KimlikDogrula, SmsGonder) sistemi modüler hale getirir. Geliştirme için ek özellikler olarak e-posta bildirimi, hatırlatma mesajı ve randevu iptal özelliği eklenebilir.
