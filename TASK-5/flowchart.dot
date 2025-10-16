@@ -1,0 +1,34 @@
+digraph SmartHome {
+  rankdir=TB;
+  node [fontname="Helvetica"];
+
+  // Düğümler
+  Start       [shape=oval,       label="Başla"];
+  Init        [shape=box,        label="initialize_system()\nload_config()\nset_mode(ARM/DISARM)"];
+  LoopStart   [shape=box,        label="Ana Döngü Başı:\nread_all_sensors()"];
+  GetMode     [shape=box,        label="mode = get_system_mode()"];
+  Detect      [shape=diamond,    label="Tehdit tespit edildi mi?"];
+  Handle      [shape=box,        label="handle_threats()\n(trigger alarm, notify, log)"];
+  Periodic    [shape=box,        label="perform_periodic_tasks()\n(health check, sync)"];
+  Sleep       [shape=parallelogram,label="sleep(SHORT_INTERVAL)"];
+  Stop        [shape=oval,       label="Bitir"];
+
+  // Kenarlar (oklar)
+  Start -> Init;
+  Init -> LoopStart;
+
+  LoopStart -> GetMode;
+  GetMode -> Detect;
+
+  Detect -> Handle [label="Evet"];
+  Detect -> Sleep  [label="Hayır"];
+
+  Handle -> Periodic;
+  Periodic -> Sleep;
+
+  // Geri ok: sonsuz döngü
+  Sleep -> LoopStart [label="Sürekli"];
+
+  // Opsiyonel: bir hata/sonlandırma yolu (isteğe bağlı)
+  Init -> Stop [label="fatal_error / exit", style="dashed", color="gray"];
+}
