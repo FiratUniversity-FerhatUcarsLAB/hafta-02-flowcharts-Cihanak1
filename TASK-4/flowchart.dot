@@ -1,0 +1,55 @@
+digraph DersKayitSistemi {
+  rankdir=TB;
+  node [fontname="Helvetica"];
+
+  // Şekil tanımlamaları
+  node [shape=oval, style=filled, fillcolor="#E0FFE0"];
+  Basla; Bitir;
+
+  node [shape=parallelogram, style=filled, fillcolor="#FFF0C1"];
+  Giris; DersListesi; KayitOzeti;
+
+  node [shape=box, style=filled, fillcolor="#E6E6FA"];
+  DersEkle; DersCikar; KrediGuncelle; Onayla; NotifyAdvisor;
+
+  node [shape=diamond, style=filled, fillcolor="#FFD9D9"];
+  KontenjanOK; OnKosulOK; ZamanCakisOK; KrediLimitOK; DanismanGerekli;
+
+  // Etiketler (okunuş için insan-dostu label'lar)
+  DanismanGerekli [label="Danışman onayı gerekli?"];
+
+  // Akış
+  Basla -> Giris [label="Öğrenci No + Şifre"];
+  Giris -> DersListesi [label="Giriş başarılı"];
+  Giris -> Bitir [label="Giriş başarısız"];
+
+  DersListesi -> DersEkle [label="Ders seçimi"];
+
+  // Kontroller zinciri
+  DersEkle -> KontenjanOK [label="Kontenjan kontrolü"];
+  KontenjanOK -> OnKosulOK [label="Evet"];
+  KontenjanOK -> DersListesi [label="Hayır (Kontenjan dolu)"];
+
+  OnKosulOK -> ZamanCakisOK [label="Evet"];
+  OnKosulOK -> DersListesi [label="Hayır (Önkoşul eksik)"];
+
+  ZamanCakisOK -> KrediLimitOK [label="Hayır (Çakışma yok)"];
+  ZamanCakisOK -> DersListesi [label="Evet (Zaman çakışması)"];
+
+  KrediLimitOK -> DanismanGerekli [label="Evet"];
+  KrediLimitOK -> DersListesi [label="Hayır (Kredi limiti aşıldı)"];
+
+  DanismanGerekli -> NotifyAdvisor [label="Evet"];
+  DanismanGerekli -> KrediGuncelle [label="Hayır"];
+
+  NotifyAdvisor -> KrediGuncelle [label="Danışman bilgilendirildi"];
+  KrediGuncelle -> DersListesi [label="Ders başarıyla eklendi"];
+
+  // Ders çıkarma ve kayıt onayı
+  DersListesi -> DersCikar [label="Ders çıkar"];
+  DersListesi -> KayitOzeti [label="Kayıt özeti iste"];
+  DersCikar -> DersListesi [label="Çıkarma tamam"];
+
+  KayitOzeti -> Onayla [label="Öğrenci onayladı"];
+  Onayla -> Bitir [label="Kayıt tamamlandı"];
+}
