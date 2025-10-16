@@ -1,0 +1,118 @@
+digraph E_Ticaret_Sepet_Odeme {
+    rankdir=TB;
+    node [shape=oval, style=filled, fillcolor=lightgray];
+
+    Start [label="BAŞLA"];
+    End [label="BİTİR"];
+
+    // Kullanıcı girişi
+    G1 [shape=parallelogram, label="Kullanıcı bilgilerini al (email, şifre)"];
+    C1 [shape=diamond, label="Kullanıcı bilgileri doğru mu?"];
+    P1 [shape=box, label="Oturum başlat ve sepeti yükle"];
+    P2 [shape=box, label="Hata mesajı göster ve çık"];
+    
+    // Ürün ekleme
+    C2 [shape=diamond, label="Ürün seçildi mi?"];
+    C3 [shape=diamond, label="Stok mevcut mu?"];
+    C4 [shape=diamond, label="Adet stoktan az veya eşit mi?"];
+    P3 [shape=box, label="Ürünü sepete ekle"];
+    P4 [shape=box, label="Yetersiz stok uyarısı"];
+    P5 [shape=box, label="Ürün stokta yok mesajı"];
+    
+    // Sepet düzenleme
+    C5 [shape=diamond, label="Kullanıcı sepeti düzenliyor mu?"];
+    C6 [shape=diamond, label="İşlem = Adet Artır mı?"];
+    C7 [shape=diamond, label="Yeni adet stoktan az veya eşit mi?"];
+    P6 [shape=box, label="Adeti artır"];
+    P7 [shape=box, label="Yetersiz stok mesajı"];
+    C8 [shape=diamond, label="İşlem = Ürün Sil mi?"];
+    P8 [shape=box, label="Ürünü sepetten sil"];
+    C9 [shape=diamond, label="İşlem = Devam mı?"];
+    P9 [shape=box, label="Sepet toplamını güncelle"];
+    
+    // İndirim kodu
+    C10 [shape=diamond, label="Kullanıcı indirim kodu girmek istiyor mu?"];
+    C11 [shape=diamond, label="Kod geçerli mi?"];
+    P10 [shape=box, label="İndirimi uygula"];
+    P11 [shape=box, label="Geçersiz kod mesajı"];
+    
+    // Kargo ve adres
+    P12 [shape=parallelogram, label="Adres al / seç"];
+    P13 [shape=box, label="Kargo ücretini hesapla ve seçtir"];
+    P14 [shape=box, label="Sepet toplamını güncelle"];
+    
+    // Ödeme aşaması
+    P15 [shape=parallelogram, label="Ödeme yöntemini seç"];
+    C12 [shape=diamond, label="Kredi kartı ile ödeme mi?"];
+    P16 [shape=parallelogram, label="Kart bilgilerini al"];
+    P17 [shape=box, label="Ödeme sağlayıcısına gönder"];
+    C13 [shape=diamond, label="Ödeme onaylandı mı?"];
+    P18 [shape=box, label="Siparişi oluştur, stok güncelle, fatura oluştur"];
+    P19 [shape=box, label="Ödeme reddedildi mesajı"];
+    C14 [shape=diamond, label="Kapıda ödeme mi?"];
+    P20 [shape=box, label="Siparişi oluştur, teslimatta ödeme"];
+    C15 [shape=diamond, label="Havale ile ödeme mi?"];
+    P21 [shape=box, label="Banka bilgilerini göster ve siparişi oluştur"];
+    
+    // Sipariş takibi
+    P22 [shape=box, label="Sipariş numarasını ve kargo bilgisini göster"];
+    P23 [shape=box, label="Oturumu kapat"];
+
+    // Akış bağlantıları
+    Start -> G1 -> C1;
+    C1 -> P1 [label="EVET"];
+    C1 -> P2 [label="HAYIR"];
+    P1 -> C2;
+    
+    C2 -> C3 [label="EVET"];
+    C2 -> C5 [label="HAYIR"];
+    C3 -> C4 [label="EVET"];
+    C3 -> P5 [label="HAYIR"];
+    C4 -> P3 [label="EVET"];
+    C4 -> P4 [label="HAYIR"];
+    P3 -> C2;
+    P4 -> C2;
+    P5 -> C2;
+
+    C5 -> C6 [label="EVET"];
+    C5 -> C10 [label="HAYIR"];
+    C6 -> C7 [label="EVET"];
+    C6 -> C8 [label="HAYIR"];
+    C7 -> P6 [label="EVET"];
+    C7 -> P7 [label="HAYIR"];
+    P6 -> P9;
+    P7 -> P9;
+    C8 -> P8 [label="EVET"];
+    C8 -> C9 [label="HAYIR"];
+    P8 -> P9;
+    C9 -> C5 [label="HAYIR"];
+    C9 -> C10 [label="EVET"];
+    P9 -> C5;
+    
+    C10 -> C11 [label="EVET"];
+    C10 -> P12 [label="HAYIR"];
+    C11 -> P10 [label="EVET"];
+    C11 -> P11 [label="HAYIR"];
+    P10 -> P12;
+    P11 -> P12;
+    
+    P12 -> P13 -> P14 -> P15;
+    P15 -> C12;
+    
+    C12 -> P16 [label="EVET"];
+    C12 -> C14 [label="HAYIR"];
+    P16 -> P17 -> C13;
+    C13 -> P18 [label="EVET"];
+    C13 -> P19 [label="HAYIR"];
+    P18 -> P22;
+    P19 -> P15;
+    
+    C14 -> P20 [label="EVET"];
+    C14 -> C15 [label="HAYIR"];
+    P20 -> P22;
+    C15 -> P21 [label="EVET"];
+    C15 -> P22 [label="HAYIR"];
+    P21 -> P22;
+    
+    P22 -> P23 -> End;
+}
