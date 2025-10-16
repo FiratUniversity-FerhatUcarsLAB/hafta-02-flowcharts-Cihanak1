@@ -1,0 +1,147 @@
+“Akıllı ev g¨uvenlik sistemi 7/24 ¸calı¸sır. Ana d¨ong¨u i¸cinde sens¨or okuma,
+ tehdit algılama, alarm verme ve bildirim g¨onderme s¨ure¸clerini i¸ceren
+ pseudocode yaz.”
+ChatGPT:
+
+Aşağıda 7/24 çalışan, ana döngüsü sensör okuma, tehdit algılama, alarm verme ve bildirim gönderme adımlarını içeren Türkçe pseudocode örneği var. Modlar (ARM/DISARM), hata yönetimi, debounce ve basit önceliklendirme de dahil edildi:
+
+Başla
+  // Sistem başlangıcı
+  initialize_system()
+  load_config()                 // sensör listesi, eşik değerleri, kullanıcı kontaktları
+  set_mode(DISARM)              // başlangıç modu (ARM/DISARM)
+  last_sensor_time = now()
+
+Fonksiyon initialize_system():
+  aç_sensörler()
+  test_hoparlör_ve_led()
+  bağlan_iletişim_servisleri() // SMS, push, e-posta
+  başlat_log() 
+
+Fonksiyon read_all_sensors():
+  readings = {}
+  her sensör s için sensör_okuma = read_sensor(s)
+    eğer sensör_okuma başarısız ise
+      log("sensor error", s)
+      attempts = 0
+      tekrarla while attempts < MAX_RETRY
+        sensör_okuma = read_sensor(s)
+        attempts += 1
+        eğer başarılı ise break
+      eğer hala başarısız ise mark_sensor_offline(s)
+    readings[s] = sensör_okuma
+  döndür readings
+
+Fonksiyon detect_threat(readings, mode):
+  threats = []
+  eğer mode == DISARM ise
+    döndür boş liste  // sistem etkisizse alarm üretme (isteğe bağlı: sadece bildirim)
+  her (sensor, value) in readings:
+    eğer sensor.type == "hareket" ve value > sensor.threshold then
+      eğer recent_event_duplicate(sensor) == false then
+        threats.append({type: "HAREKET", sensor: sensor, severity: compute_severity(value)})
+    eğer sensor.type == "kapı_pencere" ve value == OPEN then
+      threats.append({type: "GIRIS", sensor: sensor, severity: HIGH})
+    eğer sensor.type == "duman" ve value >= sensor.threshold then
+      threats.append({type: "YANGIN", sensor: sensor, severity: CRITICAL})
+    ... // diğer sensör tipleri (gaz, su baskını, cam kırılma)
+  önceliklendir threats by severity (CRITICAL > HIGH > MEDIUM > LOW)
+  döndür threats
+
+Fonksiyon handle_threats(threats):
+  eğer threats boş ise döndür
+  primary = threats[0]
+  log("threat detected", primary)
+  eğer primary.severity == CRITICAL then
+    trigger_alarm(mode="siren+strobe")
+    unlock_safety_paths_if_needed()
+    send_notifications(all_contacts, primary, include_location=true, urgent=true)
+    call_emergency_services_if_configured(primary)
+  elif primary.severity == HIGH then
+    trigger_alarm(mode="siren")
+    send_notifications(primary_owner, primary, urgent=true)
+    record_video_clip(primary.sensor)
+  else
+    // MEDIUM / LOW
+    record_event(primary)
+    send_notifications(primary_owner, primary, urgent=false)
+  set_cooldown(primary.sensor, COOLDOWN_PERIOD)
+
+Fonksiyon trigger_alarm(mode):
+  if mode includes siren then activate_siren()
+  if mode includes strobe then activate_strobe()
+  start_alarm_timer(DEFAULT_ALARM_DURATION)
+  log("alarm triggered", mode)
+
+Fonksiyon send_notifications(targets, threat, include_location=false, urgent=false):
+  message = format_message(threat, include_location)
+  for each target in targets:
+    if urgent then send_push_notification(target, message, high_priority=true)
+    else send_push_notification(target, message)
+    fallback: send_sms_or_email_if_no_ack(target, message)
+
+Ana döngü (sonsuz):
+  while true:
+    mode = get_system_mode()                    // ARM / DISARM / HOME / AWAY
+    readings = read_all_sensors()
+    threats = detect_threat(readings, mode)
+    handle_threats(threats)
+    perform_periodic_tasks_if_due()             // sağlık kontrolleri, senkronizasyon, log upload
+    sleep(SHORT_INTERVAL)                       // örn. 200-500 ms veya event-driven bekleme
+
+Dur
+
+
+İstersen bu pseudocode’u istenen programlama diline (Python, Java, C#) çeviririm veya ek özellikler eklerim (kullanıcı doğrulama, kamera canlı izlemesi, detaylı log formatı, test modu vb.). Hangi eklentiler istersin?
+
+Şunu dedin:
+DOT dilinde sonsuz d¨ong¨uy¨u g¨ostermek i¸cin geri ok kullanın ve ”S¨urekli”
+ etiketi ekleyin.
+ChatGPT:
+9s boyunca düşündüm
+
+Aşağıda Graphviz DOT dilinde akış diyagramı örneği — shapes: oval (Başla/Bitir), parallelogram (girdi/çıkış/sleep), box (işlem), diamond (karar) — ve sonsuz döngüyü göstermek için Sleep -> Ana Döngü Başı geri oku üzerinde "Sürekli" etiketiyle ekledim.
+
+digraph SmartHome {
+  rankdir=TB;
+  node [fontname="Helvetica"];
+
+  // Düğümler
+  Start       [shape=oval,       label="Başla"];
+  Init        [shape=box,        label="initialize_system()\nload_config()\nset_mode(ARM/DISARM)"];
+  LoopStart   [shape=box,        label="Ana Döngü Başı:\nread_all_sensors()"];
+  GetMode     [shape=box,        label="mode = get_system_mode()"];
+  Detect      [shape=diamond,    label="Tehdit tespit edildi mi?"];
+  Handle      [shape=box,        label="handle_threats()\n(trigger alarm, notify, log)"];
+  Periodic    [shape=box,        label="perform_periodic_tasks()\n(health check, sync)"];
+  Sleep       [shape=parallelogram,label="sleep(SHORT_INTERVAL)"];
+  Stop        [shape=oval,       label="Bitir"];
+
+  // Kenarlar (oklar)
+  Start -> Init;
+  Init -> LoopStart;
+
+  LoopStart -> GetMode;
+  GetMode -> Detect;
+
+  Detect -> Handle [label="Evet"];
+  Detect -> Sleep  [label="Hayır"];
+
+  Handle -> Periodic;
+  Periodic -> Sleep;
+
+  // Geri ok: sonsuz döngü
+  Sleep -> LoopStart [label="Sürekli"];
+
+  // Opsiyonel: bir hata/sonlandırma yolu (isteğe bağlı)
+  Init -> Stop [label="fatal_error / exit", style="dashed", color="gray"];
+}
+
+
+İstersen bu DOT dosyasını bir PNG/SVG olarak da oluşturacak şekilde hazır hale getirebilirim veya akışa ek düğümler (ör. duman alarmı, kamera kaydı, acil servis ara) ekleyebilirim. Hangisini istersin?
+
+Şunu dedin:
+bana bunu 5-6 satırlık bir açıklama ile yaz örnek DUR programı/oturumu sonlandırır. DEVAM ET ile döngünün başına dönülür (bir sonraki işlem için). BREAK ile iç döngüden çıkılır (örn. PIN doğrulandıktan sonra). % operatörü modül almak için kullanıldı; (withdrawAmount % 20) <> 0 ifadesi 20'nin katı olmadığını kontrol eder. Günlük limit dailyLimit - dailyWithdrawn ile hesaplanır; işlem başarılıysa dailyWithdrawn güncellenir. PIN hakkı tükenirse kart bloke edilir ve oturum sonlandırılır. atmCashAvailable değişkeni ATM'nin fiziksel nakit seviyesini temsil eder; gerçek ATM'lerde banknot kombinasyonu kontrolü de gerekir (ör. 20/50/100 TL vs). Burada sadece toplam miktar ve 20 TL katı kontrolü yapılmıştır. Geliştirme için ek özellikler: işlem fişi basma, parola gizleme (***), zaman damgası, çoklu para birimi, farklı işlem türleri (para yatırma, para transferi), banknot kombinasyonu kontrolü.
+ChatGPT:
+
+Bu akıllı ev güvenlik sistemi pseudocode’unda sistem 7/24 çalışır. Ana döngüde sensör verileri okunur, tehdit algılanır, alarm verilir ve bildirim gönderilir. Sürekli etiketi, döngünün kesintisiz devam ettiğini gösterir. Tehdit algılandığında alarm devreye girer ve kullanıcıya bildirim gider. Hata durumunda log kaydı tutulur ve sistem çalışmaya devam eder. Süreklilik, güvenlik sisteminin her an aktif kalmasını sağlar.
