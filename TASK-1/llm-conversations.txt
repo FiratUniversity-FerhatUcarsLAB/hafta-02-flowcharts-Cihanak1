@@ -1,0 +1,281 @@
+ATM para ¸cekme sistemi i¸cin detaylı pseudocode yazmanı istiyorum.
+ S¸unları i¸cermeli: PIN do˘grulama (3 hak), bakiye kontrol¨u, tutar
+ kontrol¨u (20 TL katları), g¨unl¨uk limit kontrol¨u, i¸slem tekrarı se¸cene˘gi. T¨um
+ adımları BAS¸LA, OKU, YAZ, E˘ GER-˙ ISE, D¨ ONG¨ U yapılarıyla yaz.
+ChatGPT:
+ATM Para Çekme Sistemi — Detaylı Pseudocode
+
+Aşağıdaki pseudocode istenen yapı taşlarını (BASLA, OKU, YAZ, EĞER-İSE, DÖNGÜ vb.) kullanır. PIN doğrulama (3 hak), bakiye kontrolü, tutar kontrolü (20 TL katları), günlük limit kontrolü ve işlem tekrarı seçeneğini içerir. Açıklayıcı yorumlar satır başlarında // ile verilmiştir.
+
+BASLA
+
+// Başlangıç değişkenleri (gerçek sistemde bunlar veri tabanından / karttan okunur)
+correctPIN ← 1234                // gerçek PIN (örnek)
+maxPinAttempts ← 3
+pinAttempts ← 0
+cardInserted ← DOĞRU             // kart takılı mı?
+accountBalance ← 5000.00         // hesap bakiyesi (TL)
+dailyLimit ← 2000.00             // günlük çekim limiti (TL)
+dailyWithdrawn ← 0.00            // bugün zaten çekilmiş toplam (TL)
+atmCashAvailable ← 10000.00      // ATM'de kalan nakit (TL)
+continueSession ← DOĞRU
+
+EĞER cardInserted DEĞİLSE
+    YAZ "Lütfen kartınızı takınız."
+    DUR
+SON
+
+// PIN doğrulama (en çok 3 deneme)
+DÖNGÜ (pinAttempts < maxPinAttempts) VE (continueSession = DOĞRU)
+    YAZ "Lütfen PIN kodunuzu giriniz:"
+    OKU enteredPIN
+
+    EĞER enteredPIN = correctPIN İSE
+        YAZ "PIN doğrulandı. İşlemlere yönlendiriliyorsunuz."
+        BREAK   // döngüden çık, PIN başarılı
+    DEĞİLSE
+        pinAttempts ← pinAttempts + 1
+        kalanHak ← maxPinAttempts - pinAttempts
+        EĞER kalanHak > 0 İSE
+            YAZ "Hatalı PIN. Kalan hak: " + kalanHak
+        DEĞİLSE
+            YAZ "PIN hakkınız tükendi. Kart bloke ediliyor."
+            // burada kart bloke işlemi yapılır
+            continueSession ← YANLIŞ
+            // işlem sonlandırılacak
+        SON
+    SON
+SON  // PIN doğrulama döngüsü sonu
+
+EĞER continueSession = YANLIŞ VE (pinAttempts >= maxPinAttempts) İSE
+    YAZ "Oturum sonlandırılıyor."
+    DUR
+SON
+
+// Başarılı PIN sonrası işlem döngüsü — kullanıcı istediği kadar işlem tekrar edebilir
+DÖNGÜ (continueSession = DOĞRU)
+    YAZ "Mevcut bakiye: " + accountBalance + " TL"
+    YAZ "Bugün çekilen toplam: " + dailyWithdrawn + " TL (Günlük limit: " + dailyLimit + " TL)"
+    YAZ "Lütfen yapılacak işlemi seçin:"
+    YAZ "1 - Para çekme"
+    YAZ "2 - Bakiye görüntüle"
+    YAZ "3 - Kart iade / Çıkış"
+    OKU choice
+
+    EĞER choice = 1 İSE
+        // Para çekme akışı
+        YAZ "Çekmek istediğiniz tutarı giriniz (20 TL katları). İptal için 0 giriniz:"
+        OKU withdrawAmount
+
+        EĞER withdrawAmount = 0 İSE
+            YAZ "İşlem iptal edildi. Ana menüye dönülüyor."
+            DEVAM ET  // döngünün başına dön
+        SON
+
+        // Tutar pozitif mi kontrolü
+        EĞER withdrawAmount <= 0 İSE
+            YAZ "Geçersiz tutar. Lütfen pozitif bir tutar girin."
+            DEVAM ET
+        SON
+
+        // 20 TL katı kontrolü
+        EĞER (withdrawAmount % 20) <> 0 İSE
+            YAZ "İşlem başarısız: Lütfen 20 TL'nin katları şeklinde bir tutar girin."
+            DEVAM ET
+        SON
+
+        // ATM'de yeterli nakit var mı?
+        EĞER withdrawAmount > atmCashAvailable İSE
+            YAZ "ATM'de yeterli nakit yok. Lütfen daha küçük bir tutar deneyin."
+            DEVAM ET
+        SON
+
+        // Hesap bakiyesi kontrolü
+        EĞER withdrawAmount > accountBalance İSE
+            YAZ "İşlem başarısız: Hesabınızda yeterli bakiyeniz yok."
+            DEVAM ET
+        SON
+
+        // Günlük limit kontrolü
+        remainingDailyLimit ← dailyLimit - dailyWithdrawn
+        EĞER withdrawAmount > remainingDailyLimit İSE
+            YAZ "İşlem başarısız: Günlük limit aşılıyor. Kalan günlük limit: " + remainingDailyLimit + " TL"
+            DEVAM ET
+        SON
+
+        // Tüm kontroller geçildiyse parayı ver ve güncelle
+        atmCashAvailable ← atmCashAvailable - withdrawAmount
+        accountBalance ← accountBalance - withdrawAmount
+        dailyWithdrawn ← dailyWithdrawn + withdrawAmount
+
+        YAZ withdrawAmount + " TL veriliyor. Lütfen paranızı ve fişi alınız."
+        YAZ "Yeni bakiye: " + accountBalance + " TL"
+        YAZ "Bugün çekilen toplam: " + dailyWithdrawn + " TL"
+
+        // İşlem başarılı, istenirse tekrar seçenek
+        YAZ "Başka işlem yapmak ister misiniz? (E/H)"
+        OKU another
+        EĞER another = "E" VEYA another = "e" İSE
+            DEVAM ET    // döngüye devam et
+        DEĞİLSE
+            YAZ "Kart iade ediliyor. Oturum sonlandırılıyor."
+            continueSession ← YANLIŞ
+            DUR
+        SON
+
+    DEĞİLSE EĞER choice = 2 İSE
+        // Bakiye görüntüleme
+        YAZ "Mevcut bakiye: " + accountBalance + " TL"
+        YAZ "Bugün çekilen toplam: " + dailyWithdrawn + " TL"
+        YAZ "Ana menüye dönmek için herhangi bir tuşa basın."
+        OKU dummy
+        DEVAM ET
+
+    DEĞİLSE EĞER choice = 3 İSE
+        // Kart iade / çıkış
+        YAZ "Kart iade ediliyor. Oturum sonlandırılıyor."
+        continueSession ← YANLIŞ
+        DUR
+
+    DEĞİLSE
+        YAZ "Geçersiz seçenek. Lütfen tekrar deneyin."
+        DEVAM ET
+    SON
+
+SON  // işlem döngüsü sonu
+
+YAZ "Güle güle."
+DUR
+
+
+Notlar / Açıklamalar
+
+DUR programı/oturumu sonlandırır.
+
+DEVAM ET ile döngünün başına dönülür (bir sonraki işlem için).
+
+BREAK ile iç döngüden çıkılır (örn. PIN doğrulandıktan sonra).
+
+% operatörü modül almak için kullanıldı; (withdrawAmount % 20) <> 0 ifadesi 20'nin katı olmadığını kontrol eder.
+
+Günlük limit dailyLimit - dailyWithdrawn ile hesaplanır; işlem başarılıysa dailyWithdrawn güncellenir.
+
+PIN hakkı tükenirse kart bloke edilir ve oturum sonlandırılır.
+
+atmCashAvailable değişkeni ATM'nin fiziksel nakit seviyesini temsil eder; gerçek ATM'lerde banknot kombinasyonu kontrolü de gerekir (ör. 20/50/100 TL vs). Burada sadece toplam miktar ve 20 TL katı kontrolü yapılmıştır.
+
+Geliştirme için ek özellikler: işlem fişi basma, parola gizleme (***), zaman damgası, çoklu para birimi, farklı işlem türleri (para yatırma, para transferi), banknot kombinasyonu kontrolü.
+
+İstersen bu pseudocode'u senin istediğin başka bir akışa göre (ör. "Tüm parayı çek" seçeneği, veya farklı hata mesajları, loglama) uyarlayabilirim.
+
+Şunu dedin:
+Bu pseudocode’u Graphviz DOT diline ¸cevir. Ba¸sla/Bitir i¸cin oval,
+ girdi/¸cıktı i¸cin parallelogram, i¸slem i¸cin box, karar i¸cin diamond kullan.
+ T¨um okları ve etiketleri ekle.
+ChatGPT:
+
+Harika — şimdi yukarıdaki ATM para çekme sistemi pseudocode’unu
+tam bir Graphviz DOT diyagramına dönüştürelim.
+İstediğin semboller:
+
+Oval (ellipse) → Başla / Bitir
+
+Paralelkenar (parallelogram) → Girdi / Çıktı (OKU, YAZ)
+
+Dikdörtgen (box) → İşlem (hesaplama, değişken atama, güncelleme vb.)
+
+Elmas (diamond) → Karar (EĞER–İSE koşulları)
+
+Aşağıda, Graphviz’in .dot formatında tam kodu verilmiştir.
+Bu kodu bir dosyaya atm_withdrawal.dot olarak kaydedip
+Graphviz ile çalıştırırsan (dot -Tpng atm_withdrawal.dot -o atm_withdrawal.png)
+görsel akış diyagramını oluşturabilirsin.
+
+digraph ATM_Withdrawal_System {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10];
+
+    // Şekil tanımları
+    start [shape=ellipse, label="BAŞLA"];
+    card_check [shape=diamond, label="Kart takılı mı?"];
+    ask_pin [shape=parallelogram, label="PIN gir"];
+    check_pin [shape=diamond, label="PIN doğru mu?"];
+    pin_fail [shape=box, label="Hatalı PIN → kalan hak = hak - 1"];
+    pin_retry [shape=diamond, label="Hak kaldı mı?"];
+    pin_block [shape=box, label="Kart bloke edilip oturum sonlandırılır"];
+    menu [shape=parallelogram, label="Menü göster:\n1-Çekme, 2-Bakiye, 3-Çıkış"];
+    read_choice [shape=parallelogram, label="Seçimi oku"];
+    choice_check [shape=diamond, label="Seçim?"];
+    withdraw_start [shape=parallelogram, label="Tutar gir (20 TL katı, 0=iptal)"];
+    check_cancel [shape=diamond, label="Tutar = 0 mı?"];
+    invalid_amount [shape=parallelogram, label="Geçersiz tutar mesajı"];
+    multiple_20 [shape=diamond, label="20 TL katı mı?"];
+    atm_cash_check [shape=diamond, label="ATM'de yeterli nakit var mı?"];
+    balance_check [shape=diamond, label="Bakiye yeterli mi?"];
+    limit_check [shape=diamond, label="Günlük limit aşılır mı?"];
+    update_data [shape=box, label="Bakiye, limit ve ATM nakit değerlerini güncelle"];
+    give_cash [shape=parallelogram, label="Parayı ve fişi ver"];
+    another_op [shape=diamond, label="Başka işlem ister misiniz?"];
+    show_balance [shape=parallelogram, label="Bakiye ve limit yazdır"];
+    exit [shape=ellipse, label="BİTİR"];
+
+    // Bağlantılar
+    start -> card_check;
+    card_check -> ask_pin [label="Evet"];
+    card_check -> exit [label="Hayır"];
+
+    ask_pin -> check_pin;
+    check_pin -> menu [label="Evet"];
+    check_pin -> pin_fail [label="Hayır"];
+
+    pin_fail -> pin_retry;
+    pin_retry -> ask_pin [label="Evet"];
+    pin_retry -> pin_block [label="Hayır"];
+    pin_block -> exit;
+
+    // Menü döngüsü
+    menu -> read_choice;
+    read_choice -> choice_check;
+
+    choice_check -> withdraw_start [label="1: Para çekme"];
+    choice_check -> show_balance [label="2: Bakiye görüntüle"];
+    choice_check -> exit [label="3: Çıkış"];
+    choice_check -> menu [label="Geçersiz"];
+
+    // Para çekme akışı
+    withdraw_start -> check_cancel;
+    check_cancel -> menu [label="Evet"];
+    check_cancel -> multiple_20 [label="Hayır"];
+
+    multiple_20 -> invalid_amount [label="Hayır"];
+    invalid_amount -> withdraw_start;
+    multiple_20 -> atm_cash_check [label="Evet"];
+
+    atm_cash_check -> balance_check [label="Evet"];
+    atm_cash_check -> withdraw_start [label="Hayır"];
+
+    balance_check -> limit_check [label="Evet"];
+    balance_check -> withdraw_start [label="Hayır"];
+
+    limit_check -> update_data [label="Evet geçmiyor"];
+    limit_check -> withdraw_start [label="Hayır (Limit Aşıldı)"];
+
+    update_data -> give_cash;
+    give_cash -> another_op;
+
+    another_op -> menu [label="Evet"];
+    another_op -> exit [label="Hayır"];
+
+    // Bakiye görüntüleme akışı
+    show_balance -> another_op;
+}
+
+💡 Açıklama:
+
+rankdir=TB: Akış yukarıdan aşağıya (“Top → Bottom”).
+
+Her karar noktası (diamond) iki yöne dallanır (örneğin “Evet / Hayır”).
+
+Menü ve para çekme akışı birbirine bağlıdır, böylece kullanıcı tekrar işlem yapabilir.
+
+“exit” (BİTİR) ovali tüm sonlanma yollarını temsil eder.
