@@ -1,0 +1,527 @@
+E-ticaret sitesinde sepet y¨onetimi ve ¨odeme sistemini adım adım a¸cıkla.
+ Kullanıcı giri¸si, ¨ur¨un ekleme, stok kontrol¨u, indirim kodu, kargo hesaplama
+ ve ¨odeme a¸samalarını i¸cermeli.
+ChatGPT:
+
+İşte bir e-ticaret sitesinde sepet yönetimi ve ödeme sisteminin adım adım nasıl çalıştığının detaylı açıklaması — kullanıcı girişinden ödeme tamamlanmasına kadar tüm süreci kapsar:
+
+🧑‍💻 1. Kullanıcı Girişi ve Kimlik Doğrulama
+
+Giriş veya kayıt ekranı gösterilir.
+
+Kullanıcı:
+
+E-posta / kullanıcı adı ve şifre girer.
+
+Alternatif olarak Google / Facebook / Apple hesabı ile giriş yapabilir.
+
+Sistem:
+
+Girdiği bilgileri veritabanındaki kullanıcı tablosunda kontrol eder.
+
+Eğer bilgiler doğruysa, oturum (session) veya token (JWT) oluşturur.
+
+Kullanıcının sepeti:
+
+Eğer önceden oturum açmışsa, önceki sepeti geri yüklenir.
+
+Yeni kullanıcıysa boş sepet başlatılır.
+
+🛒 2. Ürün Ekleme ve Sepet Yönetimi
+
+Kullanıcı, ürün sayfasında:
+
+Ürünün adı, fiyatı, stok durumu ve varyantları (renk, beden, vs.) görür.
+
+“Sepete Ekle” butonuna tıklar.
+
+Sistem:
+
+Seçilen ürünün stokta olup olmadığını kontrol eder.
+
+Uygun ise sepet verisine şu bilgiler eklenir:
+
+Ürün ID
+
+Adet
+
+Birim fiyat
+
+Toplam fiyat (adet × birim fiyat)
+
+Sepet ekranında kullanıcı:
+
+Ürün adetini artırıp azaltabilir.
+
+Ürünü silebilir.
+
+Ara toplam, kargo, indirim ve genel toplamı görebilir.
+
+Her işlem sonunda sistem sepet toplamını yeniden hesaplar.
+
+📦 3. Stok Kontrolü
+
+Ürün eklendiğinde veya adet artırıldığında:
+
+Sistem stok tablosundaki mevcut miktarı kontrol eder.
+
+Eğer stok yetersizse:
+
+“Yetersiz stok” uyarısı verir.
+
+Adet maksimum stokla sınırlandırılır.
+
+Ödeme aşamasında da stok son kez doğrulanır (farklı kullanıcılar aynı ürünü alabilir).
+
+Satın alma tamamlanınca sistem stok miktarını günceller (stok -= satın alınan adet).
+
+💸 4. İndirim Kodu Uygulama
+
+Kullanıcı “İndirim kodu uygula” alanına kod girer.
+
+Sistem, kodu promosyonlar tablosunda arar:
+
+Kod geçerliyse:
+
+Yüzde veya sabit miktarda indirim uygular.
+
+Minimum alışveriş tutarı gibi koşulları kontrol eder.
+
+Kod geçersizse veya süresi dolmuşsa hata mesajı verir.
+
+İndirimli toplam = Ara toplam – İndirim tutarı.
+
+🚚 5. Kargo Hesaplama
+
+Kullanıcı adres bilgilerini girer veya kayıtlı adresini seçer.
+
+Sistem:
+
+Adresin bölgesine göre kargo firmalarını ve ücretlerini listeler.
+
+Kargo ücretsizse (“₺500 üzeri ücretsiz kargo” gibi) bu koşulu kontrol eder.
+
+Kullanıcı kargo seçimini yapar.
+
+Sepet toplamına kargo ücreti eklenir.
+
+💳 6. Ödeme Aşaması
+
+Kullanıcı ödeme yöntemini seçer:
+
+Kredi kartı / banka kartı
+
+Kapıda ödeme
+
+Havale / EFT
+
+Dijital cüzdan (PayPal, iyzico, Shopier, vb.)
+
+Kartla ödeme durumunda:
+
+Kullanıcı kart bilgilerini girer (numara, son kullanma, CVC).
+
+Sistem bu bilgileri güvenli SSL bağlantısıyla ödeme sağlayıcısına (ör. Stripe, iyzico) gönderir.
+
+Ödeme sağlayıcısı sonucu döndürür:
+
+✅ Onaylandı → sipariş oluşturulur
+
+❌ Reddedildi → hata mesajı gösterilir
+
+Başarılı ödeme sonrası:
+
+Sipariş bilgisi veritabanına kaydedilir.
+
+Stok düşülür.
+
+Fatura oluşturulur.
+
+Kullanıcıya e-posta / SMS ile onay gönderilir.
+
+📬 7. Sipariş Tamamlama ve Takip
+
+Kullanıcı, “Siparişlerim” sayfasında sipariş durumunu görür:
+
+Hazırlanıyor
+
+Kargoya verildi (kargo takip numarası ile)
+
+Teslim edildi
+
+Kargo firmasıyla entegrasyon varsa, durum otomatik güncellenir.
+
+🔒 Güvenlik ve Ek Özellikler
+
+Tüm ödeme işlemleri SSL / TLS ile şifrelenir.
+
+Kullanıcı bilgileri KVKK ve GDPR uyumlu şekilde saklanır.
+
+Sepet oturumları cookie veya session ID ile korunur.
+
+“Misafir kullanıcı” (üye olmadan alışveriş) özelliği eklenebilir.
+
+İstersen bu akışı sana pseudocode veya Graphviz DOT diyagramı olarak da gösterebilirim (örneğin “E-ticaret ödeme süreci akış diyagramı” şeklinde).
+Böyle bir diyagram ister misin?
+
+Şunu dedin:
+Bu sistemi pseudocode olarak yaz. D¨ong¨uler i¸cin D¨ ONG¨ U, ko¸sullar i¸cin
+ E˘ GER-˙ ISE kullan. Her adımı BAS¸LA ile ba¸slat, B˙ IT˙ IR ile bitir. T¨um
+ kontrol noktalarını belirt.
+ChatGPT:
+
+Elbette!
+Aşağıda, E-ticaret sitesinde sepet yönetimi ve ödeme sistemi için istenen biçimde —
+“BAŞLA / BİTİR” yapılarıyla, EĞER–İSE koşulları ve DÖNGÜ ifadeleriyle yazılmış detaylı pseudocode verilmiştir:
+
+🧾 E-TİCARET SİTESİ SEPET VE ÖDEME SİSTEMİ — PSEUDOCODE
+BAŞLA
+    // 1. KULLANICI GİRİŞİ
+    GİRİŞ_EKRANI_GÖSTER()
+    KULLANICI_BİLGİLERİ_AL(email, sifre)
+    
+    EĞER KULLANICI_BİLGİLERİ_DOĞRU(email, sifre) İSE
+        OTURUM_BAŞLAT(kullanıcıID)
+        SEPET = ÖNCEKİ_SEPETİ_YÜKLE(kullanıcıID)
+    DEĞİLSE
+        HATA_MESAJI("Geçersiz giriş bilgisi")
+        SİSTEMDEN_ÇIK()
+    SON
+    
+    // 2. ÜRÜN EKLEME
+    DÖNGÜ ürün_seçimi_süresi_boyunca
+        ÜRÜN = ÜRÜN_SEÇ()
+        EĞER ÜRÜN_SEÇİLDİ(ÜRÜN) İSE
+            STOK = STOK_KONTROL(ÜRÜN)
+            
+            EĞER STOK > 0 İSE
+                ADET = KULLANICIDAN_ADET_AL()
+                EĞER ADET <= STOK İSE
+                    SEPETE_EKLE(ÜRÜN, ADET)
+                    MESAJ("Ürün sepete eklendi.")
+                DEĞİLSE
+                    MESAJ("Yetersiz stok. Maksimum " + STOK + " adet eklenebilir.")
+                SON
+            DEĞİLSE
+                MESAJ("Ürün stokta yok.")
+            SON
+        DEĞİLSE
+            ÇIKIŞ_SEÇİLDİ_Mİ? = KONTROL_ET()
+            EĞER ÇIKIŞ_SEÇİLDİ_Mİ? İSE DÖNGÜDEN_ÇIK()
+        SON
+    SON_DÖNGÜ
+    
+    // 3. SEPET GÖRÜNTÜLEME VE DÜZENLEME
+    SEPETİ_GÖSTER(SEPET)
+    DÖNGÜ kullanıcı_sepet_düzenleme_yapıyor_mu?
+        İŞLEM = SEPET_İŞLEM_SEÇ()
+        EĞER İŞLEM == "Adet Artır" İSE
+            ÜRÜN = ÜRÜN_SEÇ()
+            STOK = STOK_KONTROL(ÜRÜN)
+            EĞER SEPET[ÜRÜN].adet + 1 <= STOK İSE
+                SEPET[ÜRÜN].adet += 1
+            DEĞİLSE
+                MESAJ("Yetersiz stok.")
+            SON
+        EĞER İŞLEM == "Ürün Sil" İSE
+            ÜRÜN = ÜRÜN_SEÇ()
+            SEPETTEN_SİL(ÜRÜN)
+        EĞER İŞLEM == "Devam" İSE
+            DÖNGÜDEN_ÇIK()
+        SON
+        SEPET_TOPLAMINI_GÜNCELLE()
+    SON_DÖNGÜ
+    
+    // 4. İNDİRİM KODU
+    EĞER KULLANICI_KOD_GİRMEK_İSTİYOR_MU? İSE
+        KOD = İNDİRİM_KODU_AL()
+        EĞER KOD_GEÇERLİ_Mİ(KOD) İSE
+            İNDİRİM_TUTARI = KODU_UYGULA(SEPET, KOD)
+            MESAJ("İndirim uygulandı: " + İNDİRİM_TUTARI + " TL")
+        DEĞİLSE
+            MESAJ("Geçersiz veya süresi dolmuş kod.")
+        SON
+    SON
+    
+    // 5. KARGO HESAPLAMA
+    ADRES = ADRES_SEÇ_VEYA_GİR()
+    KARGO_SEÇENEKLERİ = KARGO_HESAPLA(ADRES, SEPET)
+    KARGO = KULLANICIDAN_KARGO_SEÇ(KARGO_SEÇENEKLERİ)
+    SEPET_TOPLAMI = HESAPLA_TOPLAM(SEPET, KARGO)
+    
+    // 6. ÖDEME AŞAMASI
+    ÖDEME_YÖNTEMİ = ÖDEME_YÖNTEMİ_SEÇ()
+    EĞER ÖDEME_YÖNTEMİ == "Kredi Kartı" İSE
+        KART_BİLGİLERİ_AL()
+        SONUÇ = ÖDEME_SAĞLAYICISINA_GÖNDER(KART_BİLGİLERİ, SEPET_TOPLAMI)
+        EĞER SONUÇ == "ONAY" İSE
+            SİPARİŞ_OLUŞTUR(kullanıcıID, SEPET, ADRES, KARGO)
+            STOK_GÜNCELLE(SEPET)
+            FATURA_OLUŞTUR()
+            MESAJ("Ödeme başarılı! Siparişiniz oluşturuldu.")
+        DEĞİLSE
+            MESAJ("Ödeme reddedildi. Lütfen tekrar deneyin.")
+        SON
+    DEĞİLSE_EĞER ÖDEME_YÖNTEMİ == "Kapıda Ödeme" İSE
+        SİPARİŞ_OLUŞTUR(kullanıcıID, SEPET, ADRES, KARGO)
+        MESAJ("Siparişiniz alındı, ödemeyi teslimatta yapabilirsiniz.")
+    DEĞİLSE_EĞER ÖDEME_YÖNTEMİ == "Havale" İSE
+        BANKA_BİLGİLERİNİ_GÖSTER()
+        SİPARİŞ_OLUŞTUR(kullanıcıID, SEPET, ADRES, KARGO)
+    SON
+    
+    // 7. SİPARİŞ TAKİBİ
+    MESAJ("Sipariş numaranız: " + SİPARİŞ_NO)
+    KARGO_TAKİP_BİLGİSİ_GÖSTER()
+    
+    // 8. OTURUM SONLANDIRMA
+    OTURUMU_KAPAT()
+BİTİR
+
+
+İstersen bu pseudocode’u sana Graphviz DOT diyagramına (akış diyagramı şeklinde) çevirebilirim;
+oval → BAŞLA/BİTİR, paralelkenar → giriş/çıkış, dikdörtgen → işlem, elmas → karar şeklinde.
+
+Bunu da oluşturayım mı?
+
+Şunu dedin:
+Pseudocode’u Graphviz DOT formatına ¸cevir. rankdir=TB kullan. Karar
+ noktalarında EVET/HAYIR etiketlerini unutma.
+ChatGPT:
+
+Harika! 🎯
+Aşağıda, az önceki E-ticaret sepet yönetimi ve ödeme sistemi pseudocode’unun
+Graphviz DOT biçimine çevrilmiş hâli yer alıyor.
+
+rankdir=TB (yukarıdan aşağıya akış) kullanıldı.
+
+Oval: BAŞLA / BİTİR
+
+Paralelkenar: Girdi / Çıktı
+
+Dikdörtgen: İşlem
+
+Elmas (diamond): Karar
+
+Karar dallarında EVET / HAYIR etiketleri eklendi.
+
+digraph E_Ticaret_Sepet_Odeme {
+    rankdir=TB;
+    node [shape=oval, style=filled, fillcolor=lightgray];
+
+    Start [label="BAŞLA"];
+    End [label="BİTİR"];
+
+    // Kullanıcı girişi
+    G1 [shape=parallelogram, label="Kullanıcı bilgilerini al (email, şifre)"];
+    C1 [shape=diamond, label="Kullanıcı bilgileri doğru mu?"];
+    P1 [shape=box, label="Oturum başlat ve sepeti yükle"];
+    P2 [shape=box, label="Hata mesajı göster ve çık"];
+    
+    // Ürün ekleme
+    C2 [shape=diamond, label="Ürün seçildi mi?"];
+    C3 [shape=diamond, label="Stok mevcut mu?"];
+    C4 [shape=diamond, label="Adet stoktan az veya eşit mi?"];
+    P3 [shape=box, label="Ürünü sepete ekle"];
+    P4 [shape=box, label="Yetersiz stok uyarısı"];
+    P5 [shape=box, label="Ürün stokta yok mesajı"];
+    
+    // Sepet düzenleme
+    C5 [shape=diamond, label="Kullanıcı sepeti düzenliyor mu?"];
+    C6 [shape=diamond, label="İşlem = Adet Artır mı?"];
+    C7 [shape=diamond, label="Yeni adet stoktan az veya eşit mi?"];
+    P6 [shape=box, label="Adeti artır"];
+    P7 [shape=box, label="Yetersiz stok mesajı"];
+    C8 [shape=diamond, label="İşlem = Ürün Sil mi?"];
+    P8 [shape=box, label="Ürünü sepetten sil"];
+    C9 [shape=diamond, label="İşlem = Devam mı?"];
+    P9 [shape=box, label="Sepet toplamını güncelle"];
+    
+    // İndirim kodu
+    C10 [shape=diamond, label="Kullanıcı indirim kodu girmek istiyor mu?"];
+    C11 [shape=diamond, label="Kod geçerli mi?"];
+    P10 [shape=box, label="İndirimi uygula"];
+    P11 [shape=box, label="Geçersiz kod mesajı"];
+    
+    // Kargo ve adres
+    P12 [shape=parallelogram, label="Adres al / seç"];
+    P13 [shape=box, label="Kargo ücretini hesapla ve seçtir"];
+    P14 [shape=box, label="Sepet toplamını güncelle"];
+    
+    // Ödeme aşaması
+    P15 [shape=parallelogram, label="Ödeme yöntemini seç"];
+    C12 [shape=diamond, label="Kredi kartı ile ödeme mi?"];
+    P16 [shape=parallelogram, label="Kart bilgilerini al"];
+    P17 [shape=box, label="Ödeme sağlayıcısına gönder"];
+    C13 [shape=diamond, label="Ödeme onaylandı mı?"];
+    P18 [shape=box, label="Siparişi oluştur, stok güncelle, fatura oluştur"];
+    P19 [shape=box, label="Ödeme reddedildi mesajı"];
+    C14 [shape=diamond, label="Kapıda ödeme mi?"];
+    P20 [shape=box, label="Siparişi oluştur, teslimatta ödeme"];
+    C15 [shape=diamond, label="Havale ile ödeme mi?"];
+    P21 [shape=box, label="Banka bilgilerini göster ve siparişi oluştur"];
+    
+    // Sipariş takibi
+    P22 [shape=box, label="Sipariş numarasını ve kargo bilgisini göster"];
+    P23 [shape=box, label="Oturumu kapat"];
+
+    // Akış bağlantıları
+    Start -> G1 -> C1;
+    C1 -> P1 [label="EVET"];
+    C1 -> P2 [label="HAYIR"];
+    P1 -> C2;
+    
+    C2 -> C3 [label="EVET"];
+    C2 -> C5 [label="HAYIR"];
+    C3 -> C4 [label="EVET"];
+    C3 -> P5 [label="HAYIR"];
+    C4 -> P3 [label="EVET"];
+    C4 -> P4 [label="HAYIR"];
+    P3 -> C2;
+    P4 -> C2;
+    P5 -> C2;
+
+    C5 -> C6 [label="EVET"];
+    C5 -> C10 [label="HAYIR"];
+    C6 -> C7 [label="EVET"];
+    C6 -> C8 [label="HAYIR"];
+    C7 -> P6 [label="EVET"];
+    C7 -> P7 [label="HAYIR"];
+    P6 -> P9;
+    P7 -> P9;
+    C8 -> P8 [label="EVET"];
+    C8 -> C9 [label="HAYIR"];
+    P8 -> P9;
+    C9 -> C5 [label="HAYIR"];
+    C9 -> C10 [label="EVET"];
+    P9 -> C5;
+    
+    C10 -> C11 [label="EVET"];
+    C10 -> P12 [label="HAYIR"];
+    C11 -> P10 [label="EVET"];
+    C11 -> P11 [label="HAYIR"];
+    P10 -> P12;
+    P11 -> P12;
+    
+    P12 -> P13 -> P14 -> P15;
+    P15 -> C12;
+    
+    C12 -> P16 [label="EVET"];
+    C12 -> C14 [label="HAYIR"];
+    P16 -> P17 -> C13;
+    C13 -> P18 [label="EVET"];
+    C13 -> P19 [label="HAYIR"];
+    P18 -> P22;
+    P19 -> P15;
+    
+    C14 -> P20 [label="EVET"];
+    C14 -> C15 [label="HAYIR"];
+    P20 -> P22;
+    C15 -> P21 [label="EVET"];
+    C15 -> P22 [label="HAYIR"];
+    P21 -> P22;
+    
+    P22 -> P23 -> End;
+}
+
+
+Bu DOT kodunu bir .dot dosyasına kaydedip
+örneğin şu komutla görselleştirebilirsin:
+
+dot -Tpng e_ticaret.dot -o e_ticaret.png
+
+
+İstersen bu diyagramı benim görsel olarak oluşturmamı da ister misin (Graphviz görüntüsü şeklinde)?
+
+Şunu dedin:
+5-6 satırlık bir açıklama yaz kod ile ilgili
+ChatGPT:
+
+Bu Graphviz DOT kodu, bir e-ticaret sitesinin sepet yönetimi ve ödeme sürecini adım adım gösteren bir akış diyagramını tanımlar.
+Diyagramda kullanıcı girişinden başlayarak ürün ekleme, stok kontrolü, indirim kodu uygulama, kargo hesaplama ve ödeme adımları görselleştirilir.
+Her işlem türü farklı şekillerle temsil edilir: oval (başla/bitir), paralelkenar (girdi/çıktı), dikdörtgen (işlem), elmas (karar).
+Karar noktalarındaki dallanmalar EVET/HAYIR etiketleriyle belirtilmiştir.
+Bu yapı, sistemin iş akışını hem analiz hem de dokümantasyon için kolay anlaşılır hale getirir.
+
+Şunu dedin:
+algoritmayı açıkla
+ChatGPT:
+
+Bu algoritma, bir e-ticaret sitesinde alışveriş yapan kullanıcının sepet yönetimi ve ödeme sürecini adım adım açıklayan bir işlemler zinciridir.
+Aşağıda ana mantığı basamak basamak açıklanmıştır:
+
+🧩 1. Kullanıcı Girişi
+
+Algoritma kullanıcının kimliğini doğrulayarak başlar.
+E-posta ve şifre kontrol edilir; bilgiler doğruysa oturum başlatılır ve varsa önceki sepet yüklenir.
+Bilgiler hatalıysa hata mesajı verilerek sistemden çıkılır.
+
+🛒 2. Ürün Ekleme ve Stok Kontrolü
+
+Kullanıcı bir ürün seçtiğinde sistem önce stok durumunu kontrol eder.
+Stok varsa istenen adet alınır; miktar stoktan fazla değilse ürün sepete eklenir.
+Yetersiz stok durumunda kullanıcıya uyarı gösterilir.
+Bu döngü, kullanıcı yeni ürün seçmeyi bırakana kadar devam eder.
+
+🧾 3. Sepet Düzenleme
+
+Kullanıcı sepetteki ürünlerin adetini değiştirebilir veya ürün silebilir.
+Her değişiklikte sistem stok kontrolü yapar ve sepet toplamını günceller.
+Kullanıcı “devam” seçeneğini seçene kadar bu adım sürer.
+
+💸 4. İndirim Kodu Uygulama
+
+Kullanıcı isterse bir indirim kodu girebilir.
+Sistem kodun geçerli olup olmadığını kontrol eder; geçerliyse toplam tutardan indirim düşülür.
+Geçersizse uyarı mesajı gösterilir.
+
+🚚 5. Kargo Hesaplama ve Adres
+
+Kullanıcı adresini girer veya seçer.
+Sistem, adres bilgisine göre kargo seçeneklerini ve ücretlerini hesaplar.
+Kullanıcı bir kargo yöntemi seçer ve toplam tutar buna göre güncellenir.
+
+💳 6. Ödeme Süreci
+
+Kullanıcı bir ödeme yöntemi seçer: kredi kartı, kapıda ödeme veya havale.
+
+Kredi kartı seçilirse bilgiler alınır ve ödeme sağlayıcısına gönderilir.
+
+Ödeme onaylanırsa sipariş oluşturulur, stok düşülür ve fatura hazırlanır.
+
+Reddedilirse hata mesajı verilir.
+
+Kapıda ödeme veya havale seçilirse sipariş oluşturulur, kullanıcı bilgilendirilir.
+
+📦 7. Sipariş Takibi ve Oturum Sonu
+
+Sipariş numarası ve kargo bilgileri kullanıcıya gösterilir.
+Son olarak oturum kapatılarak işlem tamamlanır.
+
+Bu algoritma, e-ticaret işlemlerinin mantıksal akışını düzenli bir biçimde temsil eder;
+her karar noktasında sistemin nasıl tepki vereceği net olarak belirlenmiştir.
+
+Şunu dedin:
+bölüm bölüm değil tek bir kısımda 5-6 satırlık
+ChatGPT:
+
+Bu algoritma, bir e-ticaret sitesinde kullanıcı girişinden sipariş tamamlamaya kadar olan süreci tanımlar. Kullanıcı giriş yaptıktan sonra ürün seçer, sistem stok kontrolü yaparak uygun ürünleri sepete ekler. Kullanıcı sepeti düzenleyebilir, indirim kodu uygulayabilir ve kargo ücretini adresine göre hesaplatabilir. Ardından tercih ettiği ödeme yöntemini seçerek işlemi tamamlar. Ödeme onaylanırsa sipariş oluşturulur, stok güncellenir ve kullanıcıya sipariş bilgileri gösterilir. Böylece tüm alışveriş süreci otomatik ve güvenli bir şekilde sonlanır.
+
+Şunu dedin:
+buna benzer olsun
+DUR programı/oturumu sonlandırır.
+DEVAM ET ile döngünün başına dönülür (bir sonraki işlem için).
+BREAK ile iç döngüden çıkılır (örn. PIN doğrulandıktan sonra).
+% operatörü modül almak için kullanıldı; (withdrawAmount % 20) <> 0 ifadesi 20'nin katı olmadığını kontrol eder.
+Günlük limit dailyLimit - dailyWithdrawn ile hesaplanır; işlem başarılıysa dailyWithdrawn güncellenir.
+PIN hakkı tükenirse kart bloke edilir ve oturum sonlandırılır.
+atmCashAvailable değişkeni ATM'nin fiziksel nakit seviyesini temsil eder; gerçek ATM'lerde banknot kombinasyonu kontrolü de gerekir (ör. 20/50/100 TL vs). Burada sadece toplam miktar ve 20 TL katı kontrolü yapılmıştır.
+Geliştirme için ek özellikler: işlem fişi basma, parola gizleme (***), zaman damgası, çoklu para birimi, farklı işlem türleri (para yatırma, para transferi), banknot kombinasyonu kontrolü.
+ChatGPT:
+
+Algoritma, e-ticaret sitesinde sepet ve ödeme sürecinin mantığını adım adım gösterir.
+EĞER–İSE yapıları karar noktalarını, DÖNGÜ ifadeleri kullanıcı etkileşimini yönetir (örneğin ürün ekleme veya sepet düzenleme).
+Sepet toplamı her işlem sonrası güncellenir; stok kontrolü ve indirim kodu doğrulaması ayrı kontrol adımlarıyla yapılır.
+Ödeme aşamasında kredi kartı, havale veya kapıda ödeme seçenekleri koşullu olarak işlenir.
+Sipariş başarıyla tamamlandığında stok güncellenir, fatura oluşturulur ve kullanıcı bilgilendirilir.
+Süreç sonunda oturum kapatılarak sistem güvenli biçimde sonlandırılır.
