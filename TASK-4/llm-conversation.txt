@@ -1,0 +1,460 @@
+Sistem A¸cıklaması
+ ¨ O˘grenci ders kayıt sisteminin t¨um kontrollerini ve kurallarını modelleyin.
+ Sistem Gereksinimleri:
+ ¨ O˘grenci giri¸si (¨o˘
+ grenci no + ¸sifre)
+ Ders listesini g¨or¨unt¨uleme (d¨ong¨u)
+ Her ders i¸cin:
+ Kontenjan kontrol¨u (ko¸sul)
+ ¨ On ko¸sul dersi kontrol¨u (ko¸sul)
+ Zaman ¸cakı¸sması kontrol¨u (ko¸sul)
+ Kredi limiti kontrol¨u (toplam ≤ 35) (ko¸sul)
+ Ders ekleme/¸cıkarma (d¨ong¨u)
+ Danı¸sman onayı gerekli mi? (GPA ¡ 2.5 ise) (ko¸sul)
+ Kayıt ¨ozeti g¨osterme ve kayıt onaylama
+ Zorluk: Zor
+ C¸oklu kontrol mekanizmaları ve karma¸sık ko¸sullar!
+ F.U- ¨ O.M.K (TF Yazılım M¨uh.)
+ Hafta 2- Akı¸s Diyagramları Lab
+ 5 Ekim 2025
+ 16/32
+G¨orev 4: LLM Prompt Stratejisi
+ Karma¸sık Sistem ˙ I¸cin Adım Adım Yakla¸sım:
+ 1. Genel Yapı
+ “¨ Universite ders kayıt sisteminin genel akı¸sını a¸cıkla: giri¸s, ders listesi, ders
+ se¸cimi, kontroller, onaylama.”
+ 2. Kontrol Mekanizmaları
+ “Ders kaydında yapılması gereken kontrolleri listele: kontenjan, ¨on ko¸sul,
+ zaman ¸cakı¸sması, kredi limiti, danı¸sman onayı.”
+ChatGPT:
+5s boyunca düşündüm
+
+Harika — aşağıda üniversite ders kayıt sistemi için istenen “genel akış” + tüm kontrol mekanizmaları + adım-adım LLM-prompt stratejisi ve makine tarafından doğrudan kullanılabilecek pseudocode / Graphviz-DOT örneği bulacaksın. Zor seviye ve çoklu/karmaşık kontroller göz önünde bulundurularak hazırlandı.
+
+1) Genel yapı — kısa özet
+
+Öğrenci giriş (öğrenci no + şifre)
+
+Ders listesi görüntüleme (kullanıcıya tüm dersler/filtreler gösterilir)
+
+Öğrenci ders seçmeye başlar (döngü: istediği kadar ekle/çıkar)
+
+Her ders eklendiğinde kontroller çalışır (kontenjan, önkoşul, zaman çakışması, kredi limiti, danışman onayı gereği)
+
+Tüm dersler seçildikten sonra kayıt özeti gösterilir (seçilen dersler, toplam kredi, bekleyen onaylar)
+
+Öğrenci onay verirse kayıt gönderilir; gerekiyorsa danışmana onay için bildirim gider
+
+Sistem kayıt durumunu kilitler/günceller, öğrenci bilgilendirilir (başarılı/başarısız + nedenler)
+
+2) Kontrol mekanizmaları — tam liste & mantık sırası
+
+Aşağıdaki kontroller her ders eklendiğinde (veya toplu doğrulamada) uygulanmalı — mantıksal öncelik önerisi:
+
+Kimlik / Yetki kontrolü
+
+Oturum açık mı? Öğrencinin aktif kayıt hakkı / engeli var mı?
+
+Kontenjan kontrolü (koşul)
+
+Eğer ders.doluluk >= ders.kontenjan → RED (kontenjan dolu)
+
+Opsiyon: bekleme listesi (waitlist) var mı?
+
+Önkoşul kontrolü (koşul)
+
+Tüm ders.onkosulList elemanları öğrenci.geçmişDersler içinde mi?
+
+Bazı önkoşullar eşik not (ör. not >= 50) gerektirebilir — not kontrolü de eklenecek.
+
+Zaman çakışması kontrolü (koşul)
+
+Yeni dersin ders saatleri, öğrenci seçili derslerin herhangi biriyle çakışıyor mu?
+
+Çakışma: tam çakışma veya kısmi (ortak sınav saati gibi) → kullanıcıya çakışma seçenekleri gösterilebilir (öncelik değiştirme, eş-zamanlılık kabul etme yoksa reddetme).
+
+Kredi limiti kontrolü (koşul)
+
+toplamKredi + ders.kredi ≤ 35 olmalı. Aksi halde reddet veya danışman onayı şart koş.
+
+Danışman onayı gerekliliği (koşul)
+
+Eğer öğrenci.gpa < 2.5 veya toplamKredi belirli eşiklerin üzerindeyse → danışman onayı zorunlu.
+
+Onay bekleyen dersler “pending” olarak kaydedilir ve danışmana bildirim gider.
+
+Ek kurallar (örnekler)
+
+Maksimum ders sayısı (örneğin en fazla 8 ders)
+
+Yıl/yarıyıl kısıtları (sadece 3. sınıf sonrası alınabilecek dersler)
+
+Laboratuvar/uygulama eşleşmeleri (lab dersi varsa teorik dersi de almak zorunlu olabilir)
+
+3) Karmaşık durumların yönetimi (çakışan kurallar)
+
+Çoklu hata bildirimi: Bir ders eklenirken birden fazla hata olabilir (ör. kontenjan dolu ve önkoşul eksik). Sistemin hepsini toplayıp öğrenciye sıralı ve anlamlı şekilde göstermesi önemli.
+
+Öncelik sırası: Genelde kontenjan → önkoşul → zaman çakışması → kredi → danışman onayı şeklinde ilerle. Böylece en ucuz maliyetli kontroller (veritaban indeksleriyle hızlı) önce yapılır.
+
+Atomic işlem: Ders ekleme birden fazla check sonucu “başarılı” ise tek bir transaction içinde commit edilmeli (race condition engelleme).
+
+Concurrent eklemeler: Aynı anda iki öğrenci aynı son kontenjanı alabilir — kontenjan güncellemesi optimistic locking veya pessimistic locking ile korunmalı.
+
+4) Adım adım pseudocode (uygulamaya yakın, okunaklı)
+function ogrenciGiris(ogrNo, sifre):
+    if not auth(ogrNo, sifre):
+        return "Giriş başarısız"
+    session.user = loadStudent(ogrNo)
+    return "Giriş başarılı"
+
+function dersEkle(session, dersId):
+    ders = getDers(dersId)
+    if ders == null:
+        return fail("Ders bulunamadı")
+
+    errors = []
+
+    # 1 Kontenjan
+    if ders.doluluk >= ders.kontenjan:
+        errors.append("Kontenjan dolu")
+
+    # 2 Önkoşullar
+    foreach ok in ders.onkosullar:
+        if not session.user.gecmisDersler.contains(ok.kod) or (ok.minNot and getNot(ok.kod) < ok.minNot):
+            errors.append("Önkoşul eksik: " + ok.kod)
+
+    # 3 Zaman çakışması
+    foreach secili in session.user.secilenDersler:
+        if zamanCakisma(ders.saatleri, secili.saatleri):
+            errors.append("Zaman çakışması: " + secili.kod)
+
+    # 4 Kredi limiti
+    yeniToplam = session.user.toplamKredi + ders.kredi
+    if yeniToplam > 35:
+        errors.append("Kredi limiti aşılıyor (şu an " + session.user.toplamKredi + ")")
+
+    # 5 Danışman onayı gereği
+    if session.user.gpa < 2.5:
+        danışmanGerekli = true
+    elif yeniToplam > 30:  # örnek ek koşul
+        danışmanGerekli = true
+    else:
+        danışmanGerekli = false
+
+    # Eğer hata yoksa ekle/pending olarak işaretle
+    if errors.isEmpty():
+        beginTransaction()
+        try:
+            if ders.doluluk + 1 > ders.kontenjan:
+                rollback()
+                return fail("Kontenjan yarışmasında kaybettiniz")
+            ders.doluluk += 1
+            session.user.secilenDersler.add(ders)
+            session.user.toplamKredi = yeniToplam
+            if danışmanGerekli:
+                ders.status = "PENDING_ADVISOR"
+                notifyAdvisor(session.user.advisorId, ders)
+            commit()
+            return success("Ders eklendi" + (danışmanGerekli ? " (Danışman onayı bekleniyor)" : ""))
+        except Exception e:
+            rollback()
+            return fail("Sistem hatası: " + e.message)
+    else:
+        return failList(errors)
+
+function dersCikar(session, dersId):
+    ders = session.user.secilenDersler.find(dersId)
+    if ders == null:
+        return fail("Ders seçili değil")
+    beginTransaction()
+    try:
+        session.user.secilenDersler.remove(ders)
+        ders.doluluk -= 1
+        session.user.toplamKredi -= ders.kredi
+        commit()
+        return success("Ders çıkarıldı")
+    except:
+        rollback()
+        return fail("Sistem hatası")
+
+function kayitOnayla(session):
+    # Tüm seçili dersleri tekrar toplu kontrol et (aynı logic)
+    aggregateErrors = []
+    foreach ders in session.user.secilenDersler:
+        result = runAllChecks(session.user, ders)
+        if result.errors not empty:
+            aggregateErrors.addAll(result.errors)
+    if aggregateErrors not empty:
+        return failList(aggregateErrors)
+    # Eğer danışman onayı gerektiren pending varsa süreci başlat
+    if any pending:
+        submitForAdvisorApproval()
+        return success("Kaydınız danışman onayına gönderildi")
+    finalizeRegistration()
+    return success("Kayıt tamamlandı")
+
+5) Graphviz DOT — akış diyagramı (başla/bitir oval, paralel kenar, box, diamond)
+
+Aşağıyı LLM'e veya Graphviz'e verip doğrudan görsel oluşturabilirsin:
+
+digraph DersKayit {
+  node [shape=oval]; Basla; Bitir;
+  node [shape=parallelogram]; DersListesi; KayitOzeti;
+  node [shape=box]; Login; SecilenDersEkle; SecilenDersCikar; NotifyAdvisor; Finalize;
+  node [shape=diamond]; KontenjanVar?; OnKosulVar?; ZamanCakis?; KrediLimit?; DanismanGerekli?;
+
+  Basla -> Login -> DersListesi
+  DersListesi -> SecilenDersEkle
+  SecilenDersEkle -> KontenjanVar?
+  KontenjanVar? -> OnKosulVar? [label="Evet"]
+  KontenjanVar? -> DersListesi [label="Hayır: Hata göster"]
+
+  OnKosulVar? -> ZamanCakis? [label="Evet"]
+  OnKosulVar? -> DersListesi [label="Hayır: Hata göster"]
+
+  ZamanCakis? -> KrediLimit? [label="Hayır"]
+  ZamanCakis? -> DersListesi [label="Evet: Hata göster"]
+
+  KrediLimit? -> DanismanGerekli? [label="Evet"]
+  KrediLimit? -> DersListesi [label="Hayır"]
+
+  DanismanGerekli? -> NotifyAdvisor [label="Evet"]
+  DanismanGerekli? -> DersListesi [label="Hayır (ekleme tamam)"]
+
+  NotifyAdvisor -> DersListesi
+  DersListesi -> KayitOzeti
+  KayitOzeti -> Finalize
+  Finalize -> Bitir
+}
+
+
+(Bu DOT'u dot -Tpng ile görsele çevirebilirsin.)
+
+6) LLM Prompt Stratejisi (adım adım) — Gorev 4 için hazır promptlar
+
+Kullanım: sırayla LLM'e ver — her adımda çıktıyı kontrol edip bir sonrakine geçir.
+
+Genel yapı isterken
+Prompt:
+
+"Üniversite ders kayıt sisteminin genel akışını açıkla: öğrenci girişi, ders listesi görüntülemesi, ders seçimi, gerekli kontroller ve kayıt onaylama. Kısa (3-6 cümle) özet halinde ver."
+
+Kontrol mekanizmalarını listeleme
+Prompt:
+
+"Ders kaydında yapılması gereken tüm kontrolleri detaylı listele: kontenjan, önkoşul, zaman çakışması, kredi limiti, danışman onayı. Her kontrol için koşul, olası hatalar ve önerilen hata mesajını belirt."
+
+Adım adım işlem mantığı (pseudocode)
+Prompt:
+
+"Yukarıdaki kontrolleri kullanarak, uygulamaya yakın, transaction-aware pseudocode üret. Ders ekleme, ders çıkarma, toplu doğrulama ve kayıt onaylama fonksiyonlarını ayrı ayrı yaz."
+
+Akış diyagramı (Graphviz DOT)
+Prompt:
+
+"Yukarıdaki pseudocode'u kullanarak Graphviz DOT formatında bir akış diyagramı oluştur. Başla/Bitir için oval, girdiler için parallelogram, işlemler için box, kararlar için diamond kullan. Tüm okları ve etiketleri ekle."
+
+Test senaryoları / edge-case listesi
+Prompt:
+
+"Sistemi test etmek için 10 adet kapsamlı test senaryosu üret: normal akış, kontenjan yarışması (race), aynı anda zaman çakışması, önkoşul eksik ama GPA yüksek, GPA düşük ve danışman onayı gerektiren durum, kredi limiti aşımları vb. Her senaryoda giriş verileri, beklenen sonuç ve DB değişikliklerini yaz."
+
+Performans / concurrency notları
+Prompt:
+
+"Gerçek üretim ortamında bu sistemi ölçeklendirmek için öneriler: kontenjan güncellemelerinde locking stratejileri, cache kullanımı, eventual consistency riskleri, rate-limit önerileri."
+
+7) Örnek test senaryoları (kısa)
+
+Normal ekleme: kontenjan var, önkoşul tamam, zaman yok, kredi alt sınır — başarılı.
+
+Kontenjan dolu: öğrenci waitlist'e alınsın veya reddedilsin.
+
+Önkoşul eksik: hata mesajı Önkoşul eksik: XYZ.
+
+Zaman çakışması: öğrenciye çakışma detayları gösterilsin ve seçim iptal edilsin.
+
+Kredi limiti aşıyor: eğer GPA≥3.0 izin ver (örnek kural) yoksa reddet.
+
+GPA < 2.5: ders pending, danışmana bildirim gitmeli.
+
+Çakışma + önkoşul eksik: her iki hata listelensin.
+
+Race condition: iki öğrenci aynı anda son kontenjanı alıyor — birinin commit sonrası diğerinin rollback alması beklenir.
+
+Danışman onayı verildiğinde sistem otomatik finalize etmeli.
+
+Ders çıkarma sonrası bekleme listesinden bir öğrenci otomatik eklenmeli.
+
+8) Öneriler / iyi uygulamalar
+
+Hata mesajlarını kullanıcı-dostu ve spesifik yap (hangı ders, hangi saat, hangi önkoşul eksik).
+
+Tüm kontrolleri hem frontend (hızlı geri bildirim) hem backend (güvenlik) düzeyinde uygula.
+
+İçsel loglama (audit trail) tut: kim ne zaman hangi dersi ekledi/çıkardı, neden reddedildi.
+
+Testler otomatikleştirilsin (unit + integration + concurrency yük testleri).
+
+Danışman onay iş akışı (workflow) için asenkron mesaj kuyruğu (kuyruk + e-posta/uygulama bildirimi) kullan.
+
+İstersen şimdi ben:
+
+Bu çıktıyı Graphviz PNG’ye çevirecek DOT dosyası oluştururum (metin biçiminde verdim — istersen DOT'u dosya olarak hazırlarım),
+
+Veya yukarıdaki pseudocode'u direk bir programlama diline (Python/Java/C#) çevirip, test verileriyle örnek çalıştırma kodu yazabilirim.
+
+Hangisini istersin? (Direkt seçim yap — beklemeye geçmem, hemen üreteceğim.)
+
+Şunu dedin:
+“Bu pseudocode’u Graphviz DOT diline ¸cevir. Her kontrol noktasını
+ diamond ile g¨oster.”
+ChatGPT:
+
+Elbette ✅
+Aşağıda, önceki ders kayıt sistemi pseudocode’unun Graphviz DOT diline çevrilmiş hâlini bulacaksın.
+Her kontrol noktası (koşul) diamond (elmas) ile, işlemler box ile, giriş/çıkışlar parallelogram ile, başlangıç/bitiş oval ile gösterilmiştir.
+Bu dosyayı .dot olarak kaydedip dot -Tpng derskayit.dot -o derskayit.png komutuyla görselleştirebilirsin.
+
+digraph DersKayitSistemi {
+  rankdir=TB;
+  node [fontname="Helvetica"];
+
+  // Şekil tanımlamaları
+  node [shape=oval, style=filled, fillcolor="#E0FFE0"]; Basla; Bitir;
+  node [shape=parallelogram, style=filled, fillcolor="#FFF0C1"]; Giris; DersListesi; KayitOzeti;
+  node [shape=box, style=filled, fillcolor="#E6E6FA"]; DersEkle; DersCikar; KrediGuncelle; Onayla; NotifyAdvisor;
+  node [shape=diamond, style=filled, fillcolor="#FFD9D9"]; KontenjanOK; OnKosulOK; ZamanCakisOK; KrediLimitOK; DanismanGerekli?;
+
+  // Akış
+  Basla -> Giris [label="Öğrenci No + Şifre"];
+  Giris -> DersListesi [label="Giriş başarılı"];
+  Giris -> Bitir [label="Giriş başarısız"];
+
+  DersListesi -> DersEkle [label="Ders seçimi"];
+
+  // Kontroller zinciri
+  DersEkle -> KontenjanOK [label="Kontenjan kontrolü"];
+  KontenjanOK -> OnKosulOK [label="Evet"];
+  KontenjanOK -> DersListesi [label="Hayır (Kontenjan dolu)"];
+
+  OnKosulOK -> ZamanCakisOK [label="Evet"];
+  OnKosulOK -> DersListesi [label="Hayır (Önkoşul eksik)"];
+
+  ZamanCakisOK -> KrediLimitOK [label="Hayır (Çakışma yok)"];
+  ZamanCakisOK -> DersListesi [label="Evet (Zaman çakışması)"];
+
+  KrediLimitOK -> DanismanGerekli? [label="Evet"];
+  KrediLimitOK -> DersListesi [label="Hayır (Kredi limiti aşıldı)"];
+
+  DanismanGerekli? -> NotifyAdvisor [label="Evet"];
+  DanismanGerekli? -> KrediGuncelle [label="Hayır"];
+
+  NotifyAdvisor -> KrediGuncelle [label="Danışman bilgilendirildi"];
+  KrediGuncelle -> DersListesi [label="Ders başarıyla eklendi"];
+
+  // Ders çıkarma ve kayıt onayı
+  DersListesi -> DersCikar [label="Ders çıkar"];
+  DersListesi -> KayitOzeti [label="Kayıt özeti iste"];
+  DersCikar -> DersListesi [label="Çıkarma tamam"];
+
+  KayitOzeti -> Onayla [label="Öğrenci onayladı"];
+  Onayla -> Bitir [label="Kayıt tamamlandı"];
+}
+
+
+Bu akışta:
+
+Her koşul noktası (KontenjanOK, OnKosulOK, ZamanCakisOK, KrediLimitOK, DanismanGerekli?) bir diamond’dır.
+
+Her başarısız kontrol, tekrar DersListesi’ne (veya hata mesajına) geri döner.
+
+Akış, kayıt onayına kadar devam eder.
+
+İstersen bu diyagramı senin için doğrudan PNG veya PDF görseli olarak oluşturayım.
+Yapmamı ister misin (örneğin PNG olarak)?
+
+Şunu dedin:
+syntax error in line 9 near '?'
+ChatGPT:
+
+Hata mesajı doğru — Graphviz düğüm adlarında ? gibi bazı özel karakterler sorun çıkarır. Kolay çözüm: düğüm isimlerinden ? ve benzeri karakterleri kaldırmak (veya düğüm etiketini çift tırnakla bırakarak label ile göstermek). Aşağıda düzeltilmiş, çalışması gereken DOT sürümünü veriyorum. DanismanGerekli? düğümünü DanismanGerekli olarak değiştirdim ve görünmesi gereken soru işaretini label içinde tuttum.
+
+Kopyala-yapıştır edip dot -Tpng derskayit.dot -o derskayit.png ile PNG oluşturabilirsin.
+
+digraph DersKayitSistemi {
+  rankdir=TB;
+  node [fontname="Helvetica"];
+
+  // Şekil tanımlamaları
+  node [shape=oval, style=filled, fillcolor="#E0FFE0"];
+  Basla; Bitir;
+
+  node [shape=parallelogram, style=filled, fillcolor="#FFF0C1"];
+  Giris; DersListesi; KayitOzeti;
+
+  node [shape=box, style=filled, fillcolor="#E6E6FA"];
+  DersEkle; DersCikar; KrediGuncelle; Onayla; NotifyAdvisor;
+
+  node [shape=diamond, style=filled, fillcolor="#FFD9D9"];
+  KontenjanOK; OnKosulOK; ZamanCakisOK; KrediLimitOK; DanismanGerekli;
+
+  // Etiketler (okunuş için insan-dostu label'lar)
+  DanismanGerekli [label="Danışman onayı gerekli?"];
+
+  // Akış
+  Basla -> Giris [label="Öğrenci No + Şifre"];
+  Giris -> DersListesi [label="Giriş başarılı"];
+  Giris -> Bitir [label="Giriş başarısız"];
+
+  DersListesi -> DersEkle [label="Ders seçimi"];
+
+  // Kontroller zinciri
+  DersEkle -> KontenjanOK [label="Kontenjan kontrolü"];
+  KontenjanOK -> OnKosulOK [label="Evet"];
+  KontenjanOK -> DersListesi [label="Hayır (Kontenjan dolu)"];
+
+  OnKosulOK -> ZamanCakisOK [label="Evet"];
+  OnKosulOK -> DersListesi [label="Hayır (Önkoşul eksik)"];
+
+  ZamanCakisOK -> KrediLimitOK [label="Hayır (Çakışma yok)"];
+  ZamanCakisOK -> DersListesi [label="Evet (Zaman çakışması)"];
+
+  KrediLimitOK -> DanismanGerekli [label="Evet"];
+  KrediLimitOK -> DersListesi [label="Hayır (Kredi limiti aşıldı)"];
+
+  DanismanGerekli -> NotifyAdvisor [label="Evet"];
+  DanismanGerekli -> KrediGuncelle [label="Hayır"];
+
+  NotifyAdvisor -> KrediGuncelle [label="Danışman bilgilendirildi"];
+  KrediGuncelle -> DersListesi [label="Ders başarıyla eklendi"];
+
+  // Ders çıkarma ve kayıt onayı
+  DersListesi -> DersCikar [label="Ders çıkar"];
+  DersListesi -> KayitOzeti [label="Kayıt özeti iste"];
+  DersCikar -> DersListesi [label="Çıkarma tamam"];
+
+  KayitOzeti -> Onayla [label="Öğrenci onayladı"];
+  Onayla -> Bitir [label="Kayıt tamamlandı"];
+}
+
+
+Eğer başka özel karakter veya boşluk içeren node isimleri kullanmak istersen, node isimlerini çift tırnak içinde yazabilir veya her düğüm için açık label="..." kullanabilirsin. Örnek:
+
+"Danışman?" [shape=diamond, label="Danışman onayı gerekli?"];
+
+
+İstersen ben şu an bu DOT’u çalıştırıp PNG olarak oluşturup sana gönderebilirim — hangisini istersin?
+
+Şunu dedin:
+bana bunu 5-6 satırlık bir açıklama ile yaz örnek
+DUR programı/oturumu sonlandırır. DEVAM ET ile döngünün başına dönülür (bir sonraki işlem için). BREAK ile iç döngüden çıkılır (örn. PIN doğrulandıktan sonra). % operatörü modül almak için kullanıldı; (withdrawAmount % 20) <> 0 ifadesi 20'nin katı olmadığını kontrol eder. Günlük limit dailyLimit - dailyWithdrawn ile hesaplanır; işlem başarılıysa dailyWithdrawn güncellenir. PIN hakkı tükenirse kart bloke edilir ve oturum sonlandırılır. atmCashAvailable değişkeni ATM'nin fiziksel nakit seviyesini temsil eder; gerçek ATM'lerde banknot kombinasyonu kontrolü de gerekir (ör. 20/50/100 TL vs). Burada sadece toplam miktar ve 20 TL katı kontrolü yapılmıştır. Geliştirme için ek özellikler: işlem fişi basma, parola gizleme (***), zaman damgası, çoklu para birimi, farklı işlem türleri (para yatırma, para transferi), banknot kombinasyonu kontrolü.
+ChatGPT:
+
+Bu akış diyagramı, öğrenci ders kayıt sürecinin tüm kontrol adımlarını modellemektedir.
+BAŞLA ile süreç başlar, öğrenci giriş bilgileri alınır; hatalı girişte BİTİR ile sonlanır.
+Her ders eklendiğinde Kontenjan, Önkoşul, Zaman Çakışması ve Kredi Limiti kontrolleri yapılır.
+Eğer öğrencinin GPA’sı düşükse, sistem Danışman Onayı Gerekli? karar noktasına yönelir.
+Tüm koşullar sağlandığında ders başarıyla eklenir; öğrenci onay verirse kayıt tamamlanır.
+Bu yapı, çoklu kontrol mekanizmalarıyla karmaşık ders kayıt sürecini sistematik biçimde temsil eder.
