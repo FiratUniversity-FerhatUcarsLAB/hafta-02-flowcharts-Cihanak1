@@ -1,0 +1,51 @@
+digraph HastaneRandevuSistemi {
+    rankdir=TB;
+    node [fontname="Arial"];
+
+    // --- Başlangıç ve Bitiş ---
+    Start [shape=oval, label="BAŞLA"];
+    End [shape=oval, label="BİTİR"];
+
+    // --- Kimlik Doğrulama ---
+    InputTC [shape=parallelogram, label="T.C. Kimlik Numaranızı Giriniz"];
+    InputSifre [shape=parallelogram, label="Şifrenizi Giriniz"];
+    CheckKimlik [shape=diamond, label="Kimlik Doğrulama Başarılı mı?"];
+    FailAuth [shape=box, label="Ekrana 'Doğrulama başarısız!' yaz"];
+    SuccessAuth [shape=box, label="Ekrana 'Hoş geldiniz!' yaz"];
+
+    // --- Poliklinik Seçimi ---
+    SelectPoliklinik [shape=parallelogram, label="Poliklinik seçiniz"];
+    ShowDoctors [shape=box, label="Polikliniğe göre doktorları göster"];
+    SelectDoctor [shape=parallelogram, label="Doktor seçiniz"];
+
+    // --- Uygun Saat Seçimi ---
+    ShowTimes [shape=box, label="Uygun randevu saatlerini göster"];
+    CheckTimes [shape=diamond, label="Uygun saat var mı?"];
+    NoTime [shape=box, label="Ekrana 'Uygun randevu yok' yaz"];
+
+    SelectTime [shape=parallelogram, label="Randevu saati seçiniz"];
+    Confirm [shape=diamond, label="Onaylıyor musunuz? (E/H)"];
+
+    // --- Randevu Onayı ---
+    SaveAppointment [shape=box, label="Randevuyu kaydet"];
+    SendSMS [shape=box, label="Onay SMS'i gönder"];
+    ShowSuccess [shape=box, label="Ekrana 'Randevu oluşturuldu' yaz"];
+    Cancel [shape=box, label="Ekrana 'Randevu iptal edildi' yaz"];
+
+    // --- Bağlantılar ---
+    Start -> InputTC -> InputSifre -> CheckKimlik;
+    CheckKimlik -> FailAuth [label="Hayır"];
+    FailAuth -> End;
+    CheckKimlik -> SuccessAuth [label="Evet"];
+    SuccessAuth -> SelectPoliklinik -> ShowDoctors -> SelectDoctor -> ShowTimes -> CheckTimes;
+
+    CheckTimes -> NoTime [label="Hayır"];
+    NoTime -> End;
+    CheckTimes -> SelectTime [label="Evet"];
+
+    SelectTime -> Confirm;
+    Confirm -> SaveAppointment [label="E"];
+    SaveAppointment -> SendSMS -> ShowSuccess -> End;
+    Confirm -> Cancel [label="H"];
+    Cancel -> End;
+}
