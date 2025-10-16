@@ -1,0 +1,78 @@
+digraph ATM_Withdrawal_System {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10];
+
+    // Şekil tanımları
+    start [shape=ellipse, label="BAŞLA"];
+    card_check [shape=diamond, label="Kart takılı mı?"];
+    ask_pin [shape=parallelogram, label="PIN gir"];
+    check_pin [shape=diamond, label="PIN doğru mu?"];
+    pin_fail [shape=box, label="Hatalı PIN → kalan hak = hak - 1"];
+    pin_retry [shape=diamond, label="Hak kaldı mı?"];
+    pin_block [shape=box, label="Kart bloke edilip oturum sonlandırılır"];
+    menu [shape=parallelogram, label="Menü göster:\n1-Çekme, 2-Bakiye, 3-Çıkış"];
+    read_choice [shape=parallelogram, label="Seçimi oku"];
+    choice_check [shape=diamond, label="Seçim?"];
+    withdraw_start [shape=parallelogram, label="Tutar gir (20 TL katı, 0=iptal)"];
+    check_cancel [shape=diamond, label="Tutar = 0 mı?"];
+    invalid_amount [shape=parallelogram, label="Geçersiz tutar mesajı"];
+    multiple_20 [shape=diamond, label="20 TL katı mı?"];
+    atm_cash_check [shape=diamond, label="ATM'de yeterli nakit var mı?"];
+    balance_check [shape=diamond, label="Bakiye yeterli mi?"];
+    limit_check [shape=diamond, label="Günlük limit aşılır mı?"];
+    update_data [shape=box, label="Bakiye, limit ve ATM nakit değerlerini güncelle"];
+    give_cash [shape=parallelogram, label="Parayı ve fişi ver"];
+    another_op [shape=diamond, label="Başka işlem ister misiniz?"];
+    show_balance [shape=parallelogram, label="Bakiye ve limit yazdır"];
+    exit [shape=ellipse, label="BİTİR"];
+
+    // Bağlantılar
+    start -> card_check;
+    card_check -> ask_pin [label="Evet"];
+    card_check -> exit [label="Hayır"];
+
+    ask_pin -> check_pin;
+    check_pin -> menu [label="Evet"];
+    check_pin -> pin_fail [label="Hayır"];
+
+    pin_fail -> pin_retry;
+    pin_retry -> ask_pin [label="Evet"];
+    pin_retry -> pin_block [label="Hayır"];
+    pin_block -> exit;
+
+    // Menü döngüsü
+    menu -> read_choice;
+    read_choice -> choice_check;
+
+    choice_check -> withdraw_start [label="1: Para çekme"];
+    choice_check -> show_balance [label="2: Bakiye görüntüle"];
+    choice_check -> exit [label="3: Çıkış"];
+    choice_check -> menu [label="Geçersiz"];
+
+    // Para çekme akışı
+    withdraw_start -> check_cancel;
+    check_cancel -> menu [label="Evet"];
+    check_cancel -> multiple_20 [label="Hayır"];
+
+    multiple_20 -> invalid_amount [label="Hayır"];
+    invalid_amount -> withdraw_start;
+    multiple_20 -> atm_cash_check [label="Evet"];
+
+    atm_cash_check -> balance_check [label="Evet"];
+    atm_cash_check -> withdraw_start [label="Hayır"];
+
+    balance_check -> limit_check [label="Evet"];
+    balance_check -> withdraw_start [label="Hayır"];
+
+    limit_check -> update_data [label="Evet geçmiyor"];
+    limit_check -> withdraw_start [label="Hayır (Limit Aşıldı)"];
+
+    update_data -> give_cash;
+    give_cash -> another_op;
+
+    another_op -> menu [label="Evet"];
+    another_op -> exit [label="Hayır"];
+
+    // Bakiye görüntüleme akışı
+    show_balance -> another_op;
+}
